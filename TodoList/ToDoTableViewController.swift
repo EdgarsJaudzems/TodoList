@@ -11,7 +11,7 @@ import CoreData
 class ToDoTableViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
     var todoList = [Todo]()
-    
+        
     var context: NSManagedObjectContext?
     @IBOutlet weak var tableView: UITableView!
     
@@ -25,8 +25,7 @@ class ToDoTableViewController: UIViewController, UITableViewDelegate, UITableVie
         context = appDelegate.persistentContainer.viewContext
         // Do any additional setup after loading the view.
     }
-    
-    
+        
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(true)
         loadData()
@@ -37,25 +36,31 @@ class ToDoTableViewController: UIViewController, UITableViewDelegate, UITableVie
         addNewItem()
     }
     
-    
     private func addNewItem() {
         let alertController = UIAlertController(title: "Add New Task", message: "What do you want to add?", preferredStyle: .alert)
         
         alertController.addTextField { (textField: UITextField) in
-            textField.placeholder = "Enter the title of task"
+            textField.placeholder = "Enter title"
             textField.autocapitalizationType = .sentences
             textField.autocorrectionType = .no
-            
+        }
+        
+        alertController.addTextField { (textField: UITextField) in
+            textField.placeholder = "Enter description"
+            textField.autocapitalizationType = .sentences
+            textField.autocorrectionType = .no
         }
         
         let addAction = UIAlertAction(title: "Add", style: .cancel) { (action: UIAlertAction) in
             let textField = alertController.textFields?.first
-            
+            let textFieldSecond = alertController.textFields?.last
             let entity = NSEntityDescription.entity(forEntityName: "Todo", in: self.context!)
+            
+            
             let item = NSManagedObject(entity: entity!, insertInto: self.context!)
             item.setValue(textField?.text, forKey: "item")
+            item.setValue(textFieldSecond?.text, forKey: "task")
             
-            //save data
             self.saveData()
         }
         
@@ -63,8 +68,6 @@ class ToDoTableViewController: UIViewController, UITableViewDelegate, UITableVie
         alertController.addAction(cancelAction)
         alertController.addAction(addAction)
         present(alertController, animated: true)
-    
-        
     }
     
     func loadData() {
@@ -84,10 +87,11 @@ class ToDoTableViewController: UIViewController, UITableViewDelegate, UITableVie
         } catch {
             fatalError(error.localizedDescription)
         }
-        // load data
+        loadData()
     }
     
     //MARK: - Table view data source
+    
          func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
             return todoList.count
         }
@@ -97,14 +101,15 @@ class ToDoTableViewController: UIViewController, UITableViewDelegate, UITableVie
             
             let item = todoList[indexPath.row]
             cell.textLabel?.text = item.value(forKey: "item") as? String
+            cell.detailTextLabel?.text = item.value(forKey: "task") as? String
             cell.accessoryType = item.completed ? .checkmark : .none
             cell.selectionStyle = .none
         
-            
             return cell
         }
     
     //MARK: - Table view delegate
+    
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         todoList[indexPath.row].completed = !todoList[indexPath.row].completed
@@ -113,7 +118,7 @@ class ToDoTableViewController: UIViewController, UITableViewDelegate, UITableVie
     
     func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
         if editingStyle == .delete {
-            let alert = UIAlertController(title: "Delete.", message: "Are you sure you want to delete?", preferredStyle: .alert)
+            let alert = UIAlertController(title: "Delete", message: "Are you sure you want to delete?", preferredStyle: .alert)
             
             alert.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler: nil))
             alert.addAction(UIAlertAction(title: "Delete", style: .default, handler: {_ in
@@ -127,7 +132,5 @@ class ToDoTableViewController: UIViewController, UITableViewDelegate, UITableVie
             self.present(alert, animated: true)
         }
     }
-    
-
 }
 
